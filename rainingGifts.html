@@ -1,0 +1,199 @@
+<!-- Developed by Darren -->
+<style>
+
+    #giftsContainer {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      display: none;
+    }
+  
+    .gift {
+      position: fixed;
+      background-color: black;
+      user-select: none;
+      z-index: 1000;
+      pointer-events: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+    }
+  </style>
+  
+  <div id="giftsContainer">
+    <span class="gift"></span>
+  </div>
+  
+  <script>
+    // Array to store our gift objects
+    var gifts = [];
+  
+    // Global variables to store our browser's window size
+    var browserWidth;
+    var browserHeight;
+  
+    // Number of gifts on the screen equal to the number of gifted subs
+    var numberOfGifts = 10;
+  
+    // Flag to reset the position of the gifts
+    var resetPosition = false;
+  
+    // Handle accessibility
+    var enableAnimations = false;
+    var reduceMotionQuery = matchMedia("(prefers-reduced-motion)");
+  
+    // Handle animation accessibility preferences 
+    function setAccessibilityState() {
+      if (reduceMotionQuery.matches) {
+        enableAnimations = false;
+      } else { 
+        enableAnimations = true;
+      }
+    }
+    setAccessibilityState();
+  
+    reduceMotionQuery.addListener(setAccessibilityState);
+  
+    //
+    // Initial Setup
+    //
+    function setup() {
+      if (enableAnimations) {
+        window.addEventListener("DOMContentLoaded", generateGifts, false);
+        window.addEventListener("resize", setResetFlag, false);
+      }
+    }
+    setup();
+  
+    //
+    // Constructor for our gift object
+    //
+    function Gift(element, speed, xPos, yPos) {
+      // set initial gift properties
+      this.element = element;
+      this.speed = speed;
+      this.xPos = xPos;
+      this.yPos = yPos;
+      this.scale = 1;
+  
+      // declare variables used for gift's motion
+      this.counter = 0;
+      this.sign = Math.random() < 0.5 ? 1 : -1;
+  
+    }
+  
+    //
+    // The function responsible for actually moving our gift
+    //
+    Gift.prototype.update = function () {
+      // 5Head trigonometry to determine our x and y position
+      this.counter += this.speed / 5000;
+      this.xPos += this.sign * this.speed * Math.cos(this.counter) / 40;
+      this.yPos += Math.sin(this.counter) / 40 + this.speed / 30;
+      this.scale = .5 + Math.abs(10 * Math.cos(this.counter) / 20);
+  
+      // Whenever a gift crosses the left or right boundary, make it reappear on the opposite side.
+      if (this.xPos > browserWidth) {
+        this.xPos = -45;
+      }
+      else if (this.xPos < -50) {
+        this.xPos = browserWidth;
+      }
+      // setting gift's position
+      setTransform(Math.round(this.xPos), Math.round(this.yPos), this.scale, this.element);
+  
+    }
+  
+    //
+    // A performant way to set your gift's position and size
+    //
+    function setTransform(xPos, yPos, scale, el) {
+      el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) scale(${scale}, ${scale})`;
+    }
+  
+    //
+    // The function responsible for creating the gift
+    //
+    function generateGifts() {
+  
+      // get our gift element from the DOM and store it
+      var originalGift = document.querySelector(".gift");
+  
+      // access our gift element's parent container
+      var giftsContainer = originalGift.parentNode;
+      giftsContainer.style.display = "block";
+  
+      // get our browser's size
+      browserWidth = document.documentElement.clientWidth;
+      browserHeight = document.documentElement.clientHeight;
+  
+      // create each individual gift
+      for (var i = 0; i < numberOfGifts; i++) {
+  
+        // clone our original gift and add it to giftsContainer
+        var giftClone = originalGift.cloneNode(true);
+        giftsContainer.appendChild(giftClone);
+  
+        // set our gift's initial position and related properties
+        var initialXPos = getPosition(50, browserWidth);
+        var initialYPos = -75;
+        var speed = 10 + Math.random() * 40;
+  
+        // create our gift object
+        var giftObject = new Gift(giftClone,
+          speed,
+          initialXPos,
+          initialYPos);
+        gifts.push(giftObject);
+      }
+  
+      // remove the original gift because we no longer need it visible
+      giftsContainer.removeChild(originalGift);
+  
+      moveGifts();
+    }
+  
+    //
+    // Responsible for moving each gift by calling its update function
+    //
+    function moveGifts() {
+  
+      if (enableAnimations) {
+        for (var i = 0; i < gifts.length; i++) {
+          var gift = gifts[i];
+          gift.update();
+        }      
+      }
+  
+      // Reset the position of all the gifts to a new value
+      if (resetPosition) {
+        browserWidth = document.documentElement.clientWidth;
+        browserHeight = document.documentElement.clientHeight;
+  
+        for (var i = 0; i < gifts.length; i++) {
+          var gift = gifts[i];
+  
+          gift.xPos = getPosition(50, browserWidth);
+          gift.yPos = getPosition(50, browserHeight);
+        }
+  
+        resetPosition = false;
+      }
+  
+      requestAnimationFrame(moveGifts);
+    }
+  
+    //
+    // This function returns a number between (maximum - offset) and (maximum + offset)
+    //
+    function getPosition(offset, size) {
+      return Math.round(-1 * offset + Math.random() * (size + 2 * offset));
+    }
+  
+    //
+    // Trigger a reset of all the gifts' positions
+    //
+    function setResetFlag(e) {
+      resetPosition = true;
+    }
+  </script>
