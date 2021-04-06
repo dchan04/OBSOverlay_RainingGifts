@@ -1,6 +1,5 @@
 <!-- Developed by Darren -->
 <style>
-
     #giftsContainer {
       position: absolute;
       left: 0px;
@@ -9,15 +8,16 @@
     }
   
     .gift {
+      background-image: url("presentImages/gift1.png");
+      background-repeat: no-repeat;
       position: fixed;
-      background-color: black;
       user-select: none;
       z-index: 1000;
       pointer-events: none;
-      border-radius: 50%;
       width: 50px;
       height: 50px;
     }
+
   </style>
   
   <div id="giftsContainer">
@@ -27,14 +27,15 @@
   <script>
     // Array to store our gift objects
     var gifts = [];
-  
+    var giftImg = new Array("presentImages/gift1.png", "presentImages/gift2.png", "presentImages/gift3.png", "presentImages/gift4.png", "presentImages/gift5.png", "presentImages/gift6.png", "presentImages/gift7.png");
+    
     // Global variables to store our browser's window size
     var browserWidth;
     var browserHeight;
   
     // Number of gifts on the screen equal to the number of gifted subs
     var numberOfGifts = 10;
-  
+
     // Flag to reset the position of the gifts
     var resetPosition = false;
   
@@ -129,11 +130,12 @@
   
       // create each individual gift
       for (var i = 0; i < numberOfGifts; i++) {
-  
+
         // clone our original gift and add it to giftsContainer
         var giftClone = originalGift.cloneNode(true);
         giftsContainer.appendChild(giftClone);
-  
+        document.getElementsByClassName('gift')[0].style.backgroundImage ='url(' + giftImg[Math.floor(Math.random() * giftImg.length)] + ')';
+
         // set our gift's initial position and related properties
         var initialXPos = getPosition(50, browserWidth);
         var initialYPos = -75;
@@ -196,4 +198,5 @@
     function setResetFlag(e) {
       resetPosition = true;
     }
+
   </script>
